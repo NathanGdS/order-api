@@ -1,14 +1,17 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
+	"net/http"
 
-	"github.com/nathangds/order-api/models"
+	"github.com/gorilla/mux"
+	"github.com/nathangds/order-api/handlers"
 )
 
 func main() {
-	var category = models.NewCategory("1", "description", models.CLOTHES)
-	res1B, _ := json.Marshal(models.CreateCategoryResponseDto(category))
-	fmt.Println(string(res1B))
+	const PORT = ":4000"
+	router := mux.NewRouter()
+
+	router.HandleFunc("/categories", handlers.ShowCategories).Methods("GET")
+	router.HandleFunc("/categories", handlers.AddCategories).Methods("POST")
+	http.ListenAndServe(PORT, router)
 }

@@ -4,6 +4,11 @@ import "time"
 
 type CategoryTypes string
 
+type NewCategoryRequest struct {
+	Description  string        `json:"description" validate:"required"`
+	CategoryType CategoryTypes `json:"category_type" validate:"required"`
+}
+
 const (
 	CLOTHES CategoryTypes = "clothes"
 	FOOD    CategoryTypes = "food"
@@ -12,15 +17,15 @@ const (
 )
 
 type Category struct {
-	CategoryId   string
-	Description  string
-	CategoryType CategoryTypes
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	DeletedAt    time.Time
+	CategoryId   int64         `json:"category_id"`
+	Description  string        `json:"description" validate:"required"`
+	CategoryType CategoryTypes `json:"category_type" validate:"required"`
+	CreatedAt    time.Time     `json:"created_at"`
+	UpdatedAt    time.Time     `json:"updated_at"`
+	DeletedAt    time.Time     `json:"deleted_at"`
 }
 
-func NewCategory(categoryId string, description string, categoryType CategoryTypes) *Category {
+func NewCategory(categoryId int64, description string, categoryType CategoryTypes) *Category {
 	return &Category{
 		CategoryId:   categoryId,
 		Description:  description,
@@ -28,35 +33,5 @@ func NewCategory(categoryId string, description string, categoryType CategoryTyp
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 		DeletedAt:    time.Time{},
-	}
-}
-
-type CategoryResponseDto struct {
-	CategoryId   string        `json:"category_id"`
-	Description  string        `json:"description"`
-	CategoryType CategoryTypes `json:"category_type"`
-	CreatedAt    time.Time     `json:"created_at"`
-	UpdatedAt    time.Time     `json:"updated_at"`
-	DeletedAt    interface{}   `json:"deleted_at"`
-}
-
-func CreateCategoryResponseDto(category *Category) CategoryResponseDto {
-	var deletedAt = checkDate(category.DeletedAt)
-
-	return CategoryResponseDto{
-		CategoryId:   category.CategoryId,
-		Description:  category.Description,
-		CategoryType: category.CategoryType,
-		CreatedAt:    category.CreatedAt,
-		UpdatedAt:    category.UpdatedAt,
-		DeletedAt:    deletedAt,
-	}
-}
-
-func checkDate(date time.Time) interface{} {
-	if date.IsZero() {
-		return nil
-	} else {
-		return date.Format("2006-01-02 15:04:05")
 	}
 }
