@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -12,6 +13,8 @@ func main() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/categories", handlers.ShowCategories).Methods("GET")
+	router.HandleFunc("/categories/{id}", handlers.ShowCategoryById).Methods("GET")
 	router.HandleFunc("/categories", handlers.AddCategories).Methods("POST")
 	http.ListenAndServe(PORT, router)
+	fmt.Println("Server running on port", PORT)
 }

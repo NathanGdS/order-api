@@ -3,8 +3,11 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/gorilla/mux"
+	"github.com/nathangds/order-api/factories"
 	"github.com/nathangds/order-api/models"
 )
 
@@ -13,9 +16,25 @@ var categories []models.Category = []models.Category{
 }
 
 func ShowCategories(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(categories)
+	factories.ResponseFactory(w, http.StatusOK, categories)
+}
+
+func ShowCategoryById(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	var category models.Category
+
+	for _, c := range categories {
+		if strconv.Itoa(int(c.CategoryId)) == vars["id"] {
+			category = c
+			break
+		}
+	}
+
+	if category.CategoryId == 0 {
+		factories.ResponseFactory(w, http.StatusNotFound, factories.ErrorResponse([]string{"Category not found"}))
+		return
+	}
+	factories.ResponseFactory(w, http.StatusOK, category)
 }
 
 func AddCategories(w http.ResponseWriter, r *http.Request) {
@@ -25,7 +44,7 @@ func AddCategories(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&requestData)
 	if err != nil {
-		http.Error(w, "Invalid JSON request body", http.StatusBadRequest)
+		factories.ResponseFactory(w, http.StatusBadRequest, factories.ErrorResponse([]string{"Invalid JSON request body"}))
 		return
 	}
 
@@ -37,15 +56,11 @@ func AddCategories(w http.ResponseWriter, r *http.Request) {
 		for _, e := range validationErrors {
 			errorMessages = append(errorMessages, e.Field()+" is "+e.Tag())
 		}
-		w.Header().Add("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorMessages)
+		factories.ResponseFactory(w, http.StatusNotFound, factories.ErrorResponse(errorMessages))
 		return
 	}
 
 	var newCategory = *models.NewCategory(int64(len(categories)+1), requestData.Description, requestData.CategoryType)
 	categories = append(categories, newCategory)
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(newCategory)
+	factories.ResponseFactory(w, http.StatusCreated, newCategory)
 }
