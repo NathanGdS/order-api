@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 	"github.com/nathangds/order-api/factories"
+	"github.com/nathangds/order-api/helpers"
 	"github.com/nathangds/order-api/models"
 )
 
@@ -48,15 +48,9 @@ func AddCategories(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	validate := validator.New()
-	err = validate.Struct(requestData)
-	if err != nil {
-		validationErrors := err.(validator.ValidationErrors)
-		var errorMessages []string
-		for _, e := range validationErrors {
-			errorMessages = append(errorMessages, e.Field()+" is "+e.Tag())
-		}
-		factories.ResponseFactory(w, http.StatusNotFound, factories.ErrorResponse(errorMessages))
+	val := helpers.ValidateRequest(requestData)
+	if val != nil {
+		factories.ResponseFactory(w, http.StatusBadRequest, factories.ErrorResponse(val))
 		return
 	}
 
