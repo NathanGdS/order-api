@@ -9,6 +9,11 @@ type NewCategoryRequest struct {
 	CategoryType CategoryTypes `json:"category_type" validate:"required"`
 }
 
+type UpdateCategoryRequest struct {
+	Description  string        `json:"description"`
+	CategoryType CategoryTypes `json:"category_type"`
+}
+
 const (
 	CLOTHES CategoryTypes = "clothes"
 	FOOD    CategoryTypes = "food"
