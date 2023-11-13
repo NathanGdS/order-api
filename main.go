@@ -16,6 +16,7 @@ func main() {
 	router.HandleFunc("/categories/{id}", handlers.ShowCategoryById).Methods("GET")
 	router.HandleFunc("/categories", handlers.AddCategories).Methods("POST")
 	router.HandleFunc("/categories/{id}", handlers.UpdateCategoryById).Methods("PUT")
+	router.HandleFunc("/categories/{id}", handlers.RemoveCategoryById).Methods("DELETE")
 	fmt.Println("Server running on port", PORT)
 	http.ListenAndServe(PORT, router)
 }

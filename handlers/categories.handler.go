@@ -17,7 +17,15 @@ var categories []models.Category = []models.Category{
 }
 
 func ShowCategories(w http.ResponseWriter, r *http.Request) {
-	factories.ResponseFactory(w, http.StatusOK, categories)
+	var response []models.Category
+
+	for _, c := range categories {
+		if c.DeletedAt == (time.Time{}) {
+			response = append(response, c)
+		}
+	}
+
+	factories.ResponseFactory(w, http.StatusOK, response)
 }
 
 func ShowCategoryById(w http.ResponseWriter, r *http.Request) {
@@ -102,4 +110,25 @@ func UpdateCategoryById(w http.ResponseWriter, r *http.Request) {
 	category.UpdatedAt = time.Now()
 
 	factories.ResponseFactory(w, http.StatusOK, category)
+}
+
+func RemoveCategoryById(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	var category *models.Category
+
+	for index, c := range categories {
+		if strconv.Itoa(int(c.CategoryId)) == vars["id"] {
+			category = &categories[index]
+			break
+		}
+	}
+
+	if category.CategoryId == 0 {
+		factories.ResponseFactory(w, http.StatusNotFound, factories.ErrorResponse([]string{"Category not found"}))
+		return
+	}
+
+	category.DeletedAt = time.Now()
+
+	factories.ResponseFactory(w, http.StatusNoContent, nil)
 }
