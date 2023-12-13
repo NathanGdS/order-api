@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type CategoryTypes string
 
@@ -22,7 +26,7 @@ const (
 )
 
 type Category struct {
-	CategoryId   int64         `json:"category_id"`
+	CategoryId   string        `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"category_id"`
 	Description  string        `json:"description" validate:"required"`
 	CategoryType CategoryTypes `json:"category_type" validate:"required"`
 	CreatedAt    time.Time     `json:"created_at"`
@@ -30,9 +34,10 @@ type Category struct {
 	DeletedAt    time.Time     `json:"deleted_at"`
 }
 
-func NewCategory(categoryId int64, description string, categoryType CategoryTypes) *Category {
+func NewCategory(description string, categoryType CategoryTypes) *Category {
+	var id = uuid.New()
 	return &Category{
-		CategoryId:   categoryId,
+		CategoryId:   id.String(),
 		Description:  description,
 		CategoryType: categoryType,
 		CreatedAt:    time.Now(),

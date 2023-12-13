@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -12,41 +11,31 @@ import (
 	"github.com/nathangds/order-api/models"
 )
 
-var categories []models.Category = []models.Category{
-	*models.NewCategory(1, "description", models.CLOTHES),
-}
+func (h handler) ShowCategories(w http.ResponseWriter, r *http.Request) {
+	var categories []models.Category
 
-func ShowCategories(w http.ResponseWriter, r *http.Request) {
-	var response []models.Category
-
-	for _, c := range categories {
-		if c.DeletedAt == (time.Time{}) {
-			response = append(response, c)
-		}
-	}
-
-	factories.ResponseFactory(w, http.StatusOK, response)
-}
-
-func ShowCategoryById(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	var category models.Category
-
-	for _, c := range categories {
-		if strconv.Itoa(int(c.CategoryId)) == vars["id"] {
-			category = c
-			break
-		}
-	}
-
-	if category.CategoryId == 0 {
-		factories.ResponseFactory(w, http.StatusNotFound, factories.ErrorResponse([]string{"Category not found"}))
+	if result := h.DB.Find(&categories); result.Error != nil {
+		factories.ResponseFactory(w, http.StatusInternalServerError, factories.ErrorResponse([]string{result.Error.Error()}))
 		return
 	}
+
+	factories.ResponseFactory(w, http.StatusOK, categories)
+}
+
+func (h handler) ShowCategoryById(w http.ResponseWriter, r *http.Request) {
+	var category models.Category
+	vars := mux.Vars(r)
+	categoryId := vars["id"]
+
+	if result := h.DB.First(&category, "category_id = ?", categoryId); result.Error != nil {
+		factories.ResponseFactory(w, http.StatusBadRequest, factories.ErrorResponse([]string{result.Error.Error()}))
+		return
+	}
+
 	factories.ResponseFactory(w, http.StatusOK, category)
 }
 
-func AddCategories(w http.ResponseWriter, r *http.Request) {
+func (h handler) AddCategories(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	var requestData models.NewCategoryRequest
@@ -63,27 +52,20 @@ func AddCategories(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var newCategory = *models.NewCategory(int64(len(categories)+1), requestData.Description, requestData.CategoryType)
-	categories = append(categories, newCategory)
-	factories.ResponseFactory(w, http.StatusCreated, newCategory)
-}
+	var newCategory = *models.NewCategory(requestData.Description, requestData.CategoryType)
 
-func UpdateCategoryById(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	var category *models.Category
-
-	for index, c := range categories {
-		if strconv.Itoa(int(c.CategoryId)) == vars["id"] {
-			category = &categories[index]
-			break
-		}
-	}
-
-	if category.CategoryId == 0 {
-		factories.ResponseFactory(w, http.StatusNotFound, factories.ErrorResponse([]string{"Category not found"}))
+	if result := h.DB.Create(&newCategory); result.Error != nil {
+		factories.ResponseFactory(w, http.StatusBadRequest, factories.ErrorResponse([]string{result.Error.Error()}))
 		return
 	}
 
+	factories.ResponseFactory(w, http.StatusCreated, newCategory)
+}
+
+func (h handler) UpdateCategoryById(w http.ResponseWriter, r *http.Request) {
+	var category *models.Category
+	vars := mux.Vars(r)
+	categoryId := vars["id"]
 	defer r.Body.Close()
 
 	var requestData models.UpdateCategoryRequest
@@ -99,6 +81,11 @@ func UpdateCategoryById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if result := h.DB.First(&category, "category_id = ?", categoryId); result.Error != nil {
+		factories.ResponseFactory(w, http.StatusBadRequest, factories.ErrorResponse([]string{result.Error.Error()}))
+		return
+	}
+
 	if requestData.Description != "" {
 		category.Description = requestData.Description
 	}
@@ -109,26 +96,30 @@ func UpdateCategoryById(w http.ResponseWriter, r *http.Request) {
 
 	category.UpdatedAt = time.Now()
 
+	if result := h.DB.Updates(&category).Where("category_id = ?", categoryId); result.Error != nil {
+		factories.ResponseFactory(w, http.StatusBadRequest, factories.ErrorResponse([]string{result.Error.Error()}))
+		return
+	}
+
 	factories.ResponseFactory(w, http.StatusOK, category)
 }
 
-func RemoveCategoryById(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
+func (h handler) RemoveCategoryById(w http.ResponseWriter, r *http.Request) {
 	var category *models.Category
+	vars := mux.Vars(r)
+	categoryId := vars["id"]
 
-	for index, c := range categories {
-		if strconv.Itoa(int(c.CategoryId)) == vars["id"] {
-			category = &categories[index]
-			break
-		}
-	}
-
-	if category.CategoryId == 0 {
-		factories.ResponseFactory(w, http.StatusNotFound, factories.ErrorResponse([]string{"Category not found"}))
+	if result := h.DB.First(&category, "category_id = ?", categoryId); result.Error != nil {
+		factories.ResponseFactory(w, http.StatusBadRequest, factories.ErrorResponse([]string{result.Error.Error()}))
 		return
 	}
 
 	category.DeletedAt = time.Now()
+
+	if result := h.DB.Save(&category); result.Error != nil {
+		factories.ResponseFactory(w, http.StatusBadRequest, factories.ErrorResponse([]string{result.Error.Error()}))
+		return
+	}
 
 	factories.ResponseFactory(w, http.StatusNoContent, nil)
 }
