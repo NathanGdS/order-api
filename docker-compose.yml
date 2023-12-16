@@ -7,6 +7,7 @@ services:
     environment:
       DB_URL: "postgres://dev:passwordqwerty@dborder:5432/orderdb?sslmode=disable"
       DB_DRIVER: postgres
+      PORT: 3000
     depends_on:
       db:
         condition: service_healthy

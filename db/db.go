@@ -17,10 +17,11 @@ func Init() *gorm.DB {
 	switch driver {
 
 	case "postgres":
+		log.Println("Connecting to postgres database")
 		dialector = postgres.Open(dbURL)
 		break
 	default:
-		log.Fatalln("Invalid database driver")
+		log.Fatalln("Invalid database driver", driver)
 	}
 
 	db, err := gorm.Open(dialector, &gorm.Config{})

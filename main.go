@@ -7,10 +7,11 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/nathangds/order-api/db"
 	"github.com/nathangds/order-api/handlers"
+	"github.com/nathangds/order-api/helpers"
 )
 
 func main() {
-	const PORT = ":4000"
+	PORT := ":" + helpers.GetEnvVariable("PORT")
 	DB := db.Init()
 	h := handlers.New(DB)
 	router := mux.NewRouter()
