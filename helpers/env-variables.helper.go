@@ -1,18 +1,14 @@
 package helpers
 
 import (
-	"log"
 	"os"
-
-	"github.com/joho/godotenv"
 )
 
 func GetEnvVariable(key string) string {
-	err := godotenv.Load(".env")
-
-	if err != nil {
-		log.Fatalf("Error loading .env file of name")
+	env := os.Getenv(key)
+	if env == "" {
+		panic("Environment variable " + key + " not found")
 	}
 
-	return os.Getenv(key)
+	return env
 }

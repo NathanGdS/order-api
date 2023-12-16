@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  web:
+    container_name: order-api
+    build: .
+    environment:
+      DB_URL: "postgres://dev:passwordqwerty@dborder:5432/orderdb?sslmode=disable"
+      DB_DRIVER: postgres
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    networks:
+      - mynet
+
+  db:
+    container_name: dborder
+    image: postgres:14-alpine
+    restart: always
+    healthcheck:
+      test: "exit 0"
+    environment:
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: passwordqwerty
+      POSTGRES_DB: orderdb
+    ports:
+      - "5432:5432"
+    networks:
+      - mynet
+
+volumes:
+  postgresql:
+
+networks:
+  mynet:
+    name: mynet-network
+    driver: bridge
