@@ -32,6 +32,7 @@ type Category struct {
 	CreatedAt    time.Time     `json:"created_at"`
 	UpdatedAt    time.Time     `json:"updated_at"`
 	DeletedAt    time.Time     `json:"deleted_at"`
+	Items        []Item        `json:"items" gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 func NewCategory(description string, categoryType CategoryTypes) *Category {

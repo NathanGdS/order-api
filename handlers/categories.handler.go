@@ -14,7 +14,7 @@ import (
 func (h handler) ShowCategories(w http.ResponseWriter, r *http.Request) {
 	var categories []models.Category
 
-	if result := h.DB.Find(&categories); result.Error != nil {
+	if result := h.DB.Preload("Items").Find(&categories); result.Error != nil {
 		factories.ResponseFactory(w, http.StatusInternalServerError, factories.ErrorResponse([]string{result.Error.Error()}))
 		return
 	}

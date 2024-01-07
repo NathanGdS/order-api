@@ -16,11 +16,16 @@ func main() {
 	h := handlers.New(DB)
 	router := mux.NewRouter()
 
+	// Categories
 	router.HandleFunc("/categories", h.ShowCategories).Methods("GET")
 	router.HandleFunc("/categories/{id}", h.ShowCategoryById).Methods("GET")
 	router.HandleFunc("/categories", h.AddCategories).Methods("POST")
 	router.HandleFunc("/categories/{id}", h.UpdateCategoryById).Methods("PUT")
 	router.HandleFunc("/categories/{id}", h.RemoveCategoryById).Methods("DELETE")
+
+	// Items
+	router.HandleFunc("/item", h.CreateItem).Methods("POST")
+
 	fmt.Println("Server running on port", PORT)
 	http.ListenAndServe(PORT, router)
 }

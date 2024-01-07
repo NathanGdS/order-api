@@ -30,7 +30,7 @@ func Init() *gorm.DB {
 		log.Fatalln("Failed to connect to database")
 	}
 
-	db.AutoMigrate(models.Category{})
+	db.AutoMigrate(models.Category{}, models.Item{})
 
 	return db
 }
