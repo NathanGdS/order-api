@@ -11,7 +11,7 @@ import (
 	"github.com/nathangds/order-api/models"
 )
 
-func (h handler) ShowCategories(w http.ResponseWriter, r *http.Request) {
+func (h Handler) ShowCategories(w http.ResponseWriter, r *http.Request) {
 	var categories []models.Category
 
 	if result := h.DB.Preload("Items").Find(&categories); result.Error != nil {
@@ -22,7 +22,7 @@ func (h handler) ShowCategories(w http.ResponseWriter, r *http.Request) {
 	factories.ResponseFactory(w, http.StatusOK, categories)
 }
 
-func (h handler) ShowCategoryById(w http.ResponseWriter, r *http.Request) {
+func (h Handler) ShowCategoryById(w http.ResponseWriter, r *http.Request) {
 	var category models.Category
 	vars := mux.Vars(r)
 	categoryId := vars["id"]
@@ -35,7 +35,7 @@ func (h handler) ShowCategoryById(w http.ResponseWriter, r *http.Request) {
 	factories.ResponseFactory(w, http.StatusOK, category)
 }
 
-func (h handler) AddCategories(w http.ResponseWriter, r *http.Request) {
+func (h Handler) AddCategories(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	var requestData models.NewCategoryRequest
@@ -62,7 +62,7 @@ func (h handler) AddCategories(w http.ResponseWriter, r *http.Request) {
 	factories.ResponseFactory(w, http.StatusCreated, newCategory)
 }
 
-func (h handler) UpdateCategoryById(w http.ResponseWriter, r *http.Request) {
+func (h Handler) UpdateCategoryById(w http.ResponseWriter, r *http.Request) {
 	var category *models.Category
 	vars := mux.Vars(r)
 	categoryId := vars["id"]
@@ -104,7 +104,7 @@ func (h handler) UpdateCategoryById(w http.ResponseWriter, r *http.Request) {
 	factories.ResponseFactory(w, http.StatusOK, category)
 }
 
-func (h handler) RemoveCategoryById(w http.ResponseWriter, r *http.Request) {
+func (h Handler) RemoveCategoryById(w http.ResponseWriter, r *http.Request) {
 	var category *models.Category
 	vars := mux.Vars(r)
 	categoryId := vars["id"]

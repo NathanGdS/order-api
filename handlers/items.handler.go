@@ -9,7 +9,7 @@ import (
 	"github.com/nathangds/order-api/models"
 )
 
-func (h handler) CreateItem(w http.ResponseWriter, r *http.Request) {
+func (h Handler) CreateItem(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	var requestData models.NewItemRequest
