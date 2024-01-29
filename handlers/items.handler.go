@@ -46,12 +46,20 @@ func (h Handler) CreateItem(w http.ResponseWriter, r *http.Request) {
 func (h Handler) ShowItems(w http.ResponseWriter, r *http.Request) {
 	var items []models.Item
 
-	if result := h.DB.Preload("Category").Find(&items); result.Error != nil {
+	if result := h.DB.Find(&items); result.Error != nil {
 		factories.ResponseFactory(w, http.StatusBadRequest, factories.ErrorResponse([]string{result.Error.Error()}))
 		return
 	}
 
-	factories.ResponseFactory(w, http.StatusOK, items)
+	var filteredResults []models.Item = make([]models.Item, 0)
+
+	for _, item := range items {
+		if item.DeletedAt.IsZero() {
+			filteredResults = append(filteredResults, item)
+		}
+	}
+
+	factories.ResponseFactory(w, http.StatusOK, filteredResults)
 }
 
 func (h Handler) ShowById(w http.ResponseWriter, r *http.Request) {
@@ -59,7 +67,7 @@ func (h Handler) ShowById(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	itemId := vars["id"]
 
-	if result := h.DB.Preload("Category").First(&item, "item_id = ?", itemId); result.Error != nil {
+	if result := h.DB.First(&item, "item_id = ?", itemId); result.Error != nil {
 		factories.ResponseFactory(w, http.StatusBadRequest, factories.ErrorResponse([]string{"Item not found"}))
 		return
 	}

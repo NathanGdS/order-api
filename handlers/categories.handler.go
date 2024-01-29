@@ -32,7 +32,15 @@ func (h Handler) ShowCategoryById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	factories.ResponseFactory(w, http.StatusOK, category)
+	var filteredResults []models.Item = make([]models.Item, 0)
+
+	for _, item := range category.Items {
+		if item.DeletedAt.IsZero() {
+			filteredResults = append(filteredResults, item)
+		}
+	}
+
+	factories.ResponseFactory(w, http.StatusOK, filteredResults)
 }
 
 func (h Handler) AddCategories(w http.ResponseWriter, r *http.Request) {
