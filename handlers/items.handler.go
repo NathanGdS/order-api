@@ -77,6 +77,56 @@ func (h Handler) ShowById(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (h Handler) UpdateItemById(w http.ResponseWriter, r *http.Request) {
+	var item *models.Item
+	vars := mux.Vars(r)
+	itemId := vars["id"]
+	defer r.Body.Close()
+
+	var requestData models.UpdateItemRequest
+
+	err := json.NewDecoder(r.Body).Decode(&requestData)
+	if err != nil {
+		factories.ResponseFactory(w, http.StatusBadRequest, factories.ErrorResponse([]string{"Invalid JSON request body"}))
+		return
+	}
+
+	if requestData == (models.UpdateItemRequest{}) {
+		factories.ResponseFactory(w, http.StatusBadRequest, factories.ErrorResponse([]string{"You cannot update an item with an empty request body"}))
+		return
+	}
+
+	if result := h.DB.First(&item, "item_id = ?", itemId); result.Error != nil {
+		factories.ResponseFactory(w, http.StatusNotFound, factories.ErrorResponse([]string{"Item not found"}))
+		return
+	}
+
+	if requestData.Name != "" {
+		item.Name = requestData.Name
+	}
+
+	if requestData.Description != "" {
+		item.Description = requestData.Description
+	}
+
+	var category models.Category
+
+	if requestData.CategoryId != "" {
+		if categoryExists := h.DB.First(&category, "category_id = ?", requestData.CategoryId); categoryExists.Error != nil || !category.DeletedAt.IsZero() {
+			factories.ResponseFactory(w, http.StatusNotFound, factories.ErrorResponse([]string{"Category not found"}))
+			return
+		}
+		item.CategoryId = requestData.CategoryId
+	}
+
+	if result := h.DB.Updates(&item).Where("item_id = ?", itemId); result.Error != nil {
+		factories.ResponseFactory(w, http.StatusBadRequest, factories.ErrorResponse([]string{result.Error.Error()}))
+		return
+	}
+
+	factories.ResponseFactory(w, http.StatusOK, item)
+}
+
 func (h Handler) RemoveItemById(w http.ResponseWriter, r *http.Request) {
 	var item models.Item
 	vars := mux.Vars(r)
