@@ -26,6 +26,7 @@ func (r *Router) LoadHandlers(h handlers.Handler) *mux.Router {
 	r.Ref.HandleFunc("/items", h.CreateItem).Methods("POST")
 	r.Ref.HandleFunc("/items", h.ShowItems).Methods("GET")
 	r.Ref.HandleFunc("/items/{id}", h.ShowById).Methods("GET")
+	r.Ref.HandleFunc("/items/{id}", h.RemoveItemById).Methods("DELETE")
 
 	return r.Ref
 }

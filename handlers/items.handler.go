@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/nathangds/order-api/factories"
@@ -74,4 +75,24 @@ func (h Handler) ShowById(w http.ResponseWriter, r *http.Request) {
 
 	factories.ResponseFactory(w, http.StatusOK, item)
 
+}
+
+func (h Handler) RemoveItemById(w http.ResponseWriter, r *http.Request) {
+	var item models.Item
+	vars := mux.Vars(r)
+	itemId := vars["id"]
+
+	if result := h.DB.First(&item, "item_id = ?", itemId); result.Error != nil {
+		factories.ResponseFactory(w, http.StatusBadRequest, factories.ErrorResponse([]string{"Item not found"}))
+		return
+	}
+
+	item.DeletedAt = time.Now()
+
+	if result := h.DB.Save(&item); result.Error != nil {
+		factories.ResponseFactory(w, http.StatusBadRequest, factories.ErrorResponse([]string{result.Error.Error()}))
+		return
+	}
+
+	factories.ResponseFactory(w, http.StatusOK, item)
 }
