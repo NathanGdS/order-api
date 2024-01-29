@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
+	"github.com/joho/godotenv"
 	"github.com/nathangds/order-api/db"
 	"github.com/nathangds/order-api/handlers"
 	"github.com/nathangds/order-api/helpers"
@@ -11,6 +13,11 @@ import (
 )
 
 func main() {
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 	PORT := ":" + helpers.GetEnvVariable("PORT")
 	DB := db.Init()
 	h := handlers.New(DB)
