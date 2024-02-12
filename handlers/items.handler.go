@@ -33,14 +33,14 @@ func (h Handler) CreateItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var newItem = *models.NewItem(requestData.Name, requestData.Description, requestData.CategoryId)
+	var newItem = *models.NewItem(requestData.Name, requestData.Description, requestData.CategoryId, requestData.Value)
 
 	if result := h.DB.Create(&newItem); result.Error != nil {
 		factories.ResponseFactory(w, http.StatusBadRequest, factories.ErrorResponse([]string{result.Error.Error()}))
 		return
 	}
 
-	factories.ResponseFactory(w, http.StatusCreated, newItem)
+	factories.ResponseFactory(w, http.StatusCreated, newItem.ShowItem())
 
 }
 
@@ -52,11 +52,11 @@ func (h Handler) ShowItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var filteredResults []models.Item = make([]models.Item, 0)
+	var filteredResults []models.ResponseItem = make([]models.ResponseItem, 0)
 
 	for _, item := range items {
 		if item.DeletedAt.IsZero() {
-			filteredResults = append(filteredResults, item)
+			filteredResults = append(filteredResults, item.ShowItem())
 		}
 	}
 
@@ -73,7 +73,7 @@ func (h Handler) ShowById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	factories.ResponseFactory(w, http.StatusOK, item)
+	factories.ResponseFactory(w, http.StatusOK, item.ShowItem())
 
 }
 
@@ -109,6 +109,10 @@ func (h Handler) UpdateItemById(w http.ResponseWriter, r *http.Request) {
 		item.Description = requestData.Description
 	}
 
+	if requestData.Value != 0 {
+		item.Value = helpers.DecimalToCents(requestData.Value)
+	}
+
 	var category models.Category
 
 	if requestData.CategoryId != "" {
@@ -124,7 +128,7 @@ func (h Handler) UpdateItemById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	factories.ResponseFactory(w, http.StatusOK, item)
+	factories.ResponseFactory(w, http.StatusOK, item.ShowItem())
 }
 
 func (h Handler) RemoveItemById(w http.ResponseWriter, r *http.Request) {
@@ -144,5 +148,5 @@ func (h Handler) RemoveItemById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	factories.ResponseFactory(w, http.StatusOK, item)
+	factories.ResponseFactory(w, http.StatusOK, item.ShowItem())
 }
